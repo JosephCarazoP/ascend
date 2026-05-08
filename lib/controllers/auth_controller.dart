@@ -1,4 +1,5 @@
-import '../models/user.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
 import '../services/auth_service.dart';
 import '../services/user_service.dart';
 
@@ -19,9 +20,10 @@ class AuthController {
     );
   }
 
-  Future<void> register(String email, String password, String rol) async {
-    final credential = await _authService.createUserWithEmailAndPassword(
-      email: email.trim(),
+  Future<void> register(String email, String password) async {
+    final normalizedEmail = email.trim();
+    final credential = await _createOrRecoverAuthUser(
+      email: normalizedEmail,
       password: password,
     );
     final firebaseUser = credential.user;
@@ -30,17 +32,11 @@ class AuthController {
       throw StateError('No se pudo crear el usuario.');
     }
 
-    final now = DateTime.now();
-    final user = AppUser(
-      id: firebaseUser.uid,
-      email: firebaseUser.email ?? email.trim(),
-      role: _normalizeRole(rol),
-      planType: 'basic',
-      createdAt: now,
-      updatedAt: now,
+    await _userService.ensureUserProfile(
+      userId: firebaseUser.uid,
+      email: firebaseUser.email ?? normalizedEmail,
+      displayName: firebaseUser.displayName,
     );
-
-    await _userService.saveUser(user);
   }
 
   Future<void> logout() {
@@ -51,11 +47,24 @@ class AuthController {
     return _authService.sendPasswordResetEmail(email.trim());
   }
 
-  String _normalizeRole(String role) {
-    if (role == 'admin' || role == 'coach' || role == 'usuario') {
-      return role;
-    }
+  Future<firebase_auth.UserCredential> _createOrRecoverAuthUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      return await _authService.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      if (error.code != 'email-already-in-use') {
+        rethrow;
+      }
 
-    return 'usuario';
+      return _authService.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    }
   }
 }

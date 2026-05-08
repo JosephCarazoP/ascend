@@ -53,22 +53,53 @@ class AppTheme {
       borderRadius: BorderRadius.circular(8),
       borderSide: BorderSide(color: border),
     );
+    final baseTextTheme = ThemeData(
+      useMaterial3: true,
+      brightness: brightness,
+    ).textTheme;
+    final textTheme = baseTextTheme.copyWith(
+      headlineMedium: baseTextTheme.headlineMedium?.copyWith(
+        color: foreground,
+        fontWeight: FontWeight.w800,
+      ),
+      headlineSmall: baseTextTheme.headlineSmall?.copyWith(
+        color: foreground,
+        fontWeight: FontWeight.w800,
+      ),
+      titleLarge: baseTextTheme.titleLarge?.copyWith(
+        color: foreground,
+        fontWeight: FontWeight.w700,
+      ),
+      titleMedium: baseTextTheme.titleMedium?.copyWith(
+        color: foreground,
+        fontWeight: FontWeight.w700,
+      ),
+      bodyMedium: baseTextTheme.bodyMedium?.copyWith(color: foreground),
+      bodySmall: baseTextTheme.bodySmall?.copyWith(color: secondaryText),
+      labelLarge: baseTextTheme.labelLarge?.copyWith(
+        color: foreground,
+        fontWeight: FontWeight.w700,
+      ),
+    );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: background,
+      textTheme: textTheme,
       appBarTheme: AppBarTheme(
         elevation: 0,
         backgroundColor: background,
         foregroundColor: foreground,
         surfaceTintColor: Colors.transparent,
         shape: Border(bottom: BorderSide(color: border)),
+        titleTextStyle: textTheme.titleMedium,
       ),
       cardTheme: CardThemeData(
         elevation: 0,
         color: background,
+        clipBehavior: Clip.antiAlias,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
@@ -89,7 +120,11 @@ class AppTheme {
       dividerTheme: DividerThemeData(color: border),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: background,
+        fillColor: muted,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
         border: outlineBorder,
         enabledBorder: outlineBorder,
         focusedBorder: outlineBorder.copyWith(
@@ -101,6 +136,8 @@ class AppTheme {
         focusedErrorBorder: outlineBorder.copyWith(
           borderSide: BorderSide(color: foreground, width: 1.4),
         ),
+        prefixIconColor: secondaryText,
+        labelStyle: TextStyle(color: secondaryText),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -109,6 +146,7 @@ class AppTheme {
           disabledBackgroundColor: muted,
           disabledForegroundColor: secondaryText,
           minimumSize: const Size.fromHeight(44),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
@@ -117,6 +155,7 @@ class AppTheme {
           foregroundColor: foreground,
           side: BorderSide(color: border),
           minimumSize: const Size.fromHeight(44),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),

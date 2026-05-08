@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
-import '../shared/theme_toggle_button.dart';
+import '../../services/auth_service.dart';
+import '../shared/auth_screen_shell.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -16,7 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String _role = 'usuario';
   bool _isLoading = false;
   String? _error;
 
@@ -41,7 +41,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await context.read<AuthController>().register(
         _emailController.text,
         _passwordController.text,
-        _role,
       );
 
       if (!mounted) {
@@ -51,6 +50,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     } catch (_) {
       if (!mounted) {
+        return;
+      }
+
+      if (context.read<AuthService>().currentUser != null) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         return;
       }
 
@@ -68,100 +72,62 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Registro'),
-        actions: const [ThemeToggleButton()],
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Crear cuenta',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo',
-                        prefixIcon: Icon(Icons.mail_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: _requiredEmail,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Contraseña',
-                        prefixIcon: Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: _requiredPassword,
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      value: _role,
-                      decoration: const InputDecoration(
-                        labelText: 'Rol',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                        border: OutlineInputBorder(),
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'usuario',
-                          child: Text('Usuario'),
-                        ),
-                        DropdownMenuItem(value: 'coach', child: Text('Coach')),
-                        DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                      ],
-                      onChanged: _isLoading
-                          ? null
-                          : (value) {
-                              if (value == null) {
-                                return;
-                              }
-
-                              setState(() {
-                                _role = value;
-                              });
-                            },
-                    ),
-                    if (_error != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _error!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: _isLoading ? null : _submit,
-                      child: _isLoading
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Registrarme'),
-                    ),
-                  ],
-                ),
+    return AuthScreenShell(
+      appBarTitle: 'Registro',
+      icon: Icons.person_add_alt_outlined,
+      title: 'Crear cuenta',
+      subtitle: 'Tu perfil iniciará como usuario Basic.',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Correo',
+                prefixIcon: Icon(Icons.mail_outline),
+                border: OutlineInputBorder(),
               ),
+              validator: _requiredEmail,
             ),
-          ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Contraseña',
+                prefixIcon: Icon(Icons.lock_outline),
+                border: OutlineInputBorder(),
+              ),
+              validator: _requiredPassword,
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ],
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: _isLoading ? null : _submit,
+              child: _isLoading
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Registrarme'),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _isLoading
+                  ? null
+                  : () => Navigator.of(context).pushNamed('/login'),
+              child: const Text('Ya tengo cuenta'),
+            ),
+          ],
         ),
       ),
     );

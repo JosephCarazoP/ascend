@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../controllers/auth_controller.dart';
-import '../shared/theme_toggle_button.dart';
+import '../shared/auth_screen_shell.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -68,71 +68,61 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recuperar contraseña'),
-        actions: const [ThemeToggleButton()],
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      'Recuperar acceso',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Correo',
-                        prefixIcon: Icon(Icons.mail_outline),
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        final email = value?.trim() ?? '';
+    return AuthScreenShell(
+      appBarTitle: 'Recuperar contraseña',
+      icon: Icons.key_outlined,
+      title: 'Recuperar acceso',
+      subtitle: 'Te enviaremos un enlace de restablecimiento.',
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Correo',
+                prefixIcon: Icon(Icons.mail_outline),
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                final email = value?.trim() ?? '';
 
-                        if (email.isEmpty || !email.contains('@')) {
-                          return 'Ingresa un correo válido.';
-                        }
+                if (email.isEmpty || !email.contains('@')) {
+                  return 'Ingresa un correo válido.';
+                }
 
-                        return null;
-                      },
-                    ),
-                    if (_message != null) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        _message!,
-                        style: TextStyle(
-                          color: _isError
-                              ? colorScheme.error
-                              : colorScheme.secondary,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: _isLoading ? null : _submit,
-                      child: _isLoading
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Enviar correo'),
-                    ),
-                  ],
+                return null;
+              },
+            ),
+            if (_message != null) ...[
+              const SizedBox(height: 12),
+              Text(
+                _message!,
+                style: TextStyle(
+                  color: _isError ? colorScheme.error : colorScheme.secondary,
                 ),
               ),
+            ],
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: _isLoading ? null : _submit,
+              child: _isLoading
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Enviar correo'),
             ),
-          ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: _isLoading
+                  ? null
+                  : () => Navigator.of(context).pushNamed('/login'),
+              child: const Text('Volver a iniciar sesión'),
+            ),
+          ],
         ),
       ),
     );

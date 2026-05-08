@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../controllers/navigation_controller.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_service.dart';
@@ -11,6 +12,8 @@ class AdminDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentAdminId = context.read<AuthService>().currentUser?.uid;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Panel Admin'),
@@ -53,10 +56,54 @@ class AdminDashboard extends StatelessWidget {
 
           return ListView.separated(
             padding: const EdgeInsets.all(16),
-            itemCount: users.length,
+            itemCount: users.length + 2,
             separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
-              final user = users[index];
+              if (index == 0) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Usuarios',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        Chip(label: Text('${users.length} registrados')),
+                        Chip(label: Text('${coaches.length} coaches')),
+                      ],
+                    ),
+                  ],
+                );
+              }
+
+              if (index == 1) {
+                return Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.assignment_outlined,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    title: const Text('Solicitudes de rutina'),
+                    subtitle: const Text(
+                      'Ver y gestionar todas las solicitudes',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        NavigationController.coachRoutineRequestsRoute,
+                      );
+                    },
+                  ),
+                );
+              }
+
+              final userIndex = index - 2;
+              final user = users[userIndex];
+              final canEditRole = user.id != currentAdminId;
               final canAssignCoach =
                   user.role == 'usuario' || user.role == 'user';
 
@@ -80,6 +127,43 @@ class AdminDashboard extends StatelessWidget {
                           if (user.coachId != null && user.coachId!.isNotEmpty)
                             Chip(label: Text('Coach: ${user.coachId}')),
                         ],
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _roleValue(user.role),
+                        decoration: const InputDecoration(
+                          labelText: 'Rol',
+                          prefixIcon: Icon(Icons.admin_panel_settings_outlined),
+                          border: OutlineInputBorder(),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'usuario',
+                            child: Text('Usuario'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'coach',
+                            child: Text('Coach'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'admin',
+                            child: Text('Admin'),
+                          ),
+                        ],
+                        onChanged: canEditRole
+                            ? (role) async {
+                                if (role == null || role == user.role) {
+                                  return;
+                                }
+
+                                await context
+                                    .read<UserService>()
+                                    .updateUserRole(
+                                      userId: user.id,
+                                      role: role,
+                                    );
+                              }
+                            : null,
                       ),
                       if (canAssignCoach) ...[
                         const SizedBox(height: 12),
@@ -131,6 +215,14 @@ class AdminDashboard extends StatelessWidget {
       default:
         return 'Usuario';
     }
+  }
+
+  String _roleValue(String role) {
+    if (role == 'admin' || role == 'coach') {
+      return role;
+    }
+
+    return 'usuario';
   }
 
   String _coachValue(String? coachId, List<AppUser> coaches) {

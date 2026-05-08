@@ -6,7 +6,12 @@ class NavigationController {
   static const String forgotPasswordRoute = '/forgot-password';
   static const String adminDashboardRoute = '/admin/dashboard';
   static const String coachDashboardRoute = '/coach/dashboard';
+  static const String coachRoutineRequestsRoute = '/coach/routine-requests';
+  static const String coachRoutineRequestDetailRoute =
+      '/coach/routine-request-detail';
   static const String userHomeRoute = '/user/home';
+  static const String requestRoutineRoute = '/user/request-routine';
+  static const String userRoutineRequestsRoute = '/user/routine-requests';
 
   String routeForRole(String role) {
     switch (role) {

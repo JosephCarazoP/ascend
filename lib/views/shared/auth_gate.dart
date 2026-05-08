@@ -36,7 +36,7 @@ class AuthGate extends StatelessWidget {
             final appUser = userSnapshot.data;
 
             if (appUser == null) {
-              return const _MissingProfileScreen();
+              return _ProfileRecoveryScreen(firebaseUser: firebaseUser);
             }
 
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -69,36 +69,96 @@ class _LoadingScreen extends StatelessWidget {
   }
 }
 
-class _MissingProfileScreen extends StatelessWidget {
-  const _MissingProfileScreen();
+class _ProfileRecoveryScreen extends StatefulWidget {
+  const _ProfileRecoveryScreen({required this.firebaseUser});
+
+  final firebase_auth.User firebaseUser;
+
+  @override
+  State<_ProfileRecoveryScreen> createState() => _ProfileRecoveryScreenState();
+}
+
+class _ProfileRecoveryScreenState extends State<_ProfileRecoveryScreen> {
+  late Future<AppUser> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = _createProfile();
+  }
+
+  Future<AppUser> _createProfile() {
+    return context.read<UserService>().ensureUserProfile(
+      userId: widget.firebaseUser.uid,
+      email: widget.firebaseUser.email ?? '',
+      displayName: widget.firebaseUser.displayName,
+    );
+  }
+
+  void _retry() {
+    setState(() {
+      _profileFuture = _createProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Perfil no encontrado')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.person_off_outlined, size: 48),
-              const SizedBox(height: 16),
-              const Text(
-                'Tu cuenta existe en Firebase Auth, pero no tiene perfil en Firestore.',
-                textAlign: TextAlign.center,
+    return FutureBuilder<AppUser>(
+      future: _profileFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const _LoadingScreen();
+        }
+
+        if (!snapshot.hasError) {
+          return const _LoadingScreen();
+        }
+
+        return Scaffold(
+          appBar: AppBar(title: const Text('Perfil pendiente')),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.person_add_alt_outlined,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No se pudo terminar tu perfil en Firestore.',
+                      style: Theme.of(context).textTheme.titleMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Intenta de nuevo. Si continúa, revisa que las reglas de Firestore estén publicadas.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: _retry,
+                      child: const Text('Reintentar'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        await context.read<AuthService>().signOut();
+                      },
+                      child: const Text('Cerrar sesión'),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () async {
-                  await context.read<AuthService>().signOut();
-                },
-                child: const Text('Cerrar sesión'),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -51,3 +51,11 @@ List<Map<String, dynamic>> mapListFromJson(Object? value) {
 
   return const [];
 }
+
+Map<String, dynamic> dynamicMapFromJson(Object? value) {
+  if (value is Map) {
+    return Map<String, dynamic>.from(value);
+  }
+
+  return const {};
+}

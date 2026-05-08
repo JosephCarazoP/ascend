@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        getUserData(request.auth.uid).role == 'admin';
+    }
+
+    function isCoach() {
+      return isAuthenticated() &&
+        getUserData(request.auth.uid).role == 'coach';
+    }
+
+    function isCoachOfClient(clientId) {
+      return isAuthenticated() &&
+        isCoach() &&
+        getUserData(clientId).coachId == request.auth.uid;
+    }
+
+    function isValidSelfCreatedUser(userId) {
+      return request.resource.data.keys().hasOnly([
+        'id',
+        'email',
+        'role',
+        'planType',
+        'displayName',
+        'coachId',
+        'createdAt',
+        'updatedAt'
+      ]) &&
+      request.resource.data.id == userId &&
+      request.resource.data.role == 'usuario' &&
+      request.resource.data.planType == 'basic' &&
+      request.resource.data.coachId == null;
+    }
+
+    function hasValidRoutineRequestStatus() {
+      return request.resource.data.status in [
+        'pending',
+        'reviewed',
+        'assigned',
+        'rejected'
+      ];
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() &&
+        (
+          userId == request.auth.uid ||
+          isAdmin() ||
+          isCoachOfClient(userId)
+        );
+
+      allow create: if isAuthenticated() &&
+        userId == request.auth.uid &&
+        isValidSelfCreatedUser(userId);
+      allow update: if isAuthenticated() &&
+        (
+          (
+            userId == request.auth.uid &&
+            request.resource.data.role == resource.data.role &&
+            request.resource.data.coachId == resource.data.coachId &&
+            request.resource.data.planType == resource.data.planType
+          ) ||
+          isAdmin()
+        );
+      allow delete: if isAdmin();
+    }
+
+    match /routine_requests/{requestId} {
+      allow read: if isAuthenticated() &&
+        (
+          resource.data.userId == request.auth.uid ||
+          isCoachOfClient(resource.data.userId) ||
+          isAdmin()
+        );
+
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.coachId == getUserData(request.auth.uid).coachId &&
+        request.resource.data.status == 'pending';
+
+      allow update: if isAuthenticated() &&
+        hasValidRoutineRequestStatus() &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.coachId == resource.data.coachId &&
+        (
+          isAdmin() ||
+          isCoachOfClient(resource.data.userId)
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

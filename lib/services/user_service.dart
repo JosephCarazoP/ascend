@@ -26,6 +26,32 @@ class UserService {
     return _users.doc(user.id).set(user.toJson(), SetOptions(merge: true));
   }
 
+  Future<AppUser> ensureUserProfile({
+    required String userId,
+    required String email,
+    String? displayName,
+  }) async {
+    final existingUser = await getUser(userId);
+
+    if (existingUser != null) {
+      return existingUser;
+    }
+
+    final now = DateTime.now();
+    final user = AppUser(
+      id: userId,
+      email: email,
+      role: 'usuario',
+      planType: 'basic',
+      displayName: displayName,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await saveUser(user);
+    return user;
+  }
+
   Future<void> updateUser(AppUser user) {
     return _users.doc(user.id).update(user.toJson());
   }
@@ -69,5 +95,27 @@ class UserService {
       'coachId': coachId,
       'updatedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  Future<void> updateUserRole({required String userId, required String role}) {
+    final normalizedRole = _normalizeRole(role);
+    final data = <String, dynamic>{
+      'role': normalizedRole,
+      'updatedAt': FieldValue.serverTimestamp(),
+    };
+
+    if (normalizedRole != 'usuario') {
+      data['coachId'] = null;
+    }
+
+    return _users.doc(userId).update(data);
+  }
+
+  String _normalizeRole(String role) {
+    if (role == 'admin' || role == 'coach') {
+      return role;
+    }
+
+    return 'usuario';
   }
 }

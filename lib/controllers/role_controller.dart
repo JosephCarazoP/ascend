@@ -11,6 +11,7 @@ class RoleController {
     'view_roles',
     'assign_coach',
     'manage_users',
+    'manage_routine_requests',
   };
 
   static const Set<String> _coachActions = {
@@ -22,6 +23,7 @@ class RoleController {
   static const Set<String> _usuarioActions = {
     'view_profile',
     'request_routine',
+    'view_routine_requests',
     'view_assigned_routines',
   };
 
