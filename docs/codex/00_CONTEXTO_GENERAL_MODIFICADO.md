@@ -34,6 +34,21 @@ Una app web puede servir más adelante como panel administrativo o panel para co
 
 ---
 
+## DISEÑO GLOBAL
+
+Ascend debe seguir `docs/codex/GUIA_DISENO.md`.
+
+Reglas clave:
+
+- Diseño minimalista, moderno y similar a shadcn ui.
+- Usar blanco y negro como base visual.
+- Usar matices de gris solo para bordes, fondos secundarios y texto secundario.
+- Usar verde solo como acento puntual.
+- No usar gradientes decorativos ni paletas de color adicionales.
+- La app debe permitir cambiar entre modo claro y modo oscuro.
+
+---
+
 ## PRINCIPIO DE DESARROLLO
 
 El proyecto ya no se organiza por semanas.  

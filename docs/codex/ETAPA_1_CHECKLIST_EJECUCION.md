@@ -8,63 +8,73 @@ Este checklist se usa para ejecutar la **ETAPA 1 (Fundación y Firebase)** sin a
 
 ## Estado real del repositorio (verificado)
 
-En este repositorio actualmente **solo hay documentación** y no se encontraron:
+El repositorio actualmente contiene un proyecto Flutter base con:
 
 - `pubspec.yaml`
 - carpeta `lib/`
 - carpetas móviles (`android/`, `ios/`)
+- `lib/firebase_options.dart`
+- `android/app/google-services.json`
 
-Por lo tanto, la implementación técnica de la etapa 1 queda **bloqueada** hasta contar con el proyecto Flutter base.
+La implementación técnica local de la etapa 1 fue ejecutada. Quedan pendientes
+solo verificaciones externas de Firebase Console que no se pueden confirmar desde
+el código local.
 
 ## Checklist técnico de Etapa 1
 
 ### A. Estructura MVC
 
-- [ ] Verificar que exista:
-  - [ ] `lib/models/`
-  - [ ] `lib/views/`
-  - [ ] `lib/controllers/`
-  - [ ] `lib/services/`
-  - [ ] `lib/utils/`
+- [x] Verificar que exista:
+  - [x] `lib/models/`
+  - [x] `lib/views/`
+  - [x] `lib/controllers/`
+  - [x] `lib/services/`
+  - [x] `lib/utils/`
 
 ### B. Dependencias mínimas
 
-- [ ] Verificar en `pubspec.yaml`:
-  - [ ] `firebase_core`
-  - [ ] `firebase_auth`
-  - [ ] `cloud_firestore`
-  - [ ] `provider`
+- [x] Verificar en `pubspec.yaml`:
+  - [x] `firebase_core`
+  - [x] `firebase_auth`
+  - [x] `cloud_firestore`
+  - [x] `provider`
 
 ### C. Modelos base
 
-- [ ] `user.dart`
-- [ ] `coach.dart`
-- [ ] `routine.dart`
-- [ ] `exercise.dart`
-- [ ] `workout_session.dart`
-- [ ] `exercise_log.dart`
+- [x] `user.dart`
+- [x] `coach.dart`
+- [x] `routine.dart`
+- [x] `exercise.dart`
+- [x] `workout_session.dart`
+- [x] `exercise_log.dart`
 
 Cada modelo debe incluir:
 
-- [ ] constructor
-- [ ] `toJson()`
-- [ ] `fromJson()`
-- [ ] `copyWith()`
+- [x] constructor
+- [x] `toJson()`
+- [x] `fromJson()`
+- [x] `copyWith()`
 
 ### D. Servicios base
 
-- [ ] `auth_service.dart`
-- [ ] `user_service.dart`
-- [ ] `routine_service.dart`
-- [ ] `workout_service.dart`
-- [ ] `subscription_service.dart` (versión básica en etapa 1)
+- [x] `auth_service.dart`
+- [x] `user_service.dart`
+- [x] `routine_service.dart`
+- [x] `workout_service.dart`
+- [x] `subscription_service.dart` (versión básica en etapa 1)
 
 ### E. Validación
 
-- [ ] `flutter pub get`
-- [ ] `flutter analyze`
-- [ ] Confirmación de inicialización Firebase
+- [x] `flutter pub get`
+- [x] `flutter analyze`
+- [x] `flutter test`
+- [x] Confirmación de inicialización Firebase en `main.dart`
+- [ ] Confirmar en Firebase Console que Authentication está activo
+- [ ] Confirmar en Firebase Console que Cloud Firestore está activo
+- [ ] Confirmar si el flujo iOS requiere `ios/Runner/GoogleService-Info.plist`
 
 ## Siguiente paso sugerido
 
-Cuando se agregue el proyecto Flutter real al repositorio, ejecutar este checklist en orden y registrar resultados en este mismo archivo.
+Confirmar en Firebase Console que Auth y Firestore están activos. Si se va a
+probar iOS con configuración manual, agregar el `GoogleService-Info.plist` real
+descargado desde Firebase Console.

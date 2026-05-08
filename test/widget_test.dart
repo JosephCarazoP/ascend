@@ -1,30 +1,46 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:ascend/main.dart';
+import 'package:ascend/controllers/navigation_controller.dart';
+import 'package:ascend/controllers/role_controller.dart';
+import 'package:ascend/models/user.dart';
+import 'package:ascend/services/user_service.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('AppUser serializes basic role data', () {
+    const user = AppUser(
+      id: 'u1',
+      email: 'user@example.com',
+      role: 'usuario',
+      planType: 'basic',
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    final copy = AppUser.fromJson(user.toJson());
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(copy.id, 'u1');
+    expect(copy.email, 'user@example.com');
+    expect(copy.role, 'usuario');
+    expect(copy.planType, 'basic');
   });
+
+  test('role hierarchy keeps admin above coach and usuario', () {
+    final controller = RoleController(userService: _UnusedUserService());
+
+    expect(controller.roleCanAccess('admin', 'coach'), isTrue);
+    expect(controller.roleCanAccess('admin', 'usuario'), isTrue);
+    expect(controller.roleCanAccess('coach', 'usuario'), isTrue);
+    expect(controller.roleCanAccess('usuario', 'coach'), isFalse);
+  });
+
+  test('navigation maps roles to protected dashboard routes', () {
+    final controller = NavigationController();
+
+    expect(controller.routeForRole('admin'), '/admin/dashboard');
+    expect(controller.routeForRole('coach'), '/coach/dashboard');
+    expect(controller.routeForRole('usuario'), '/user/home');
+  });
+}
+
+class _UnusedUserService implements UserService {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
